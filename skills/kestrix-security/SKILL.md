@@ -1,6 +1,6 @@
 ---
 name: kestrix-security
-description: Run Kestrix, a local-first security workbench, to answer everyday security questions on the user's own machine. Use when the user asks whether an email is phishing or a scam, wants a suspicious email or .eml file checked, asks whether a link or URL is safe to click, wants a suspicious file, download or attachment analysed, wants their own website's security headers, HTTPS/TLS certificate or cookie flags checked, wants to repair or debug a Sigma detection rule (why didn't my rule fire, why is it noisy), or asks whether Bitcoin addresses are exposed to quantum attacks. Not for scanning systems the user does not own or is not authorized to test.
+description: Runs the local Kestrix command line tool to check things on the user's own machine and explain the result. Use when the user asks whether an email or .eml file is phishing, a scam or spoofed, whether a link or URL is safe to click, what a suspicious file, download or attachment really is, whether a photo reveals where it was taken, to check the security headers, HTTPS certificate or cookie flags of a website they own or are authorized to test, why a Sigma detection rule did not fire or is noisy, whether Bitcoin addresses are exposed to quantum attacks, or when the user names Kestrix. Not for reviewing source code, which belongs to secure-code-review. Never for scanning a website or system the user does not own or is not authorized to test.
 ---
 
 # Kestrix security workbench
@@ -30,7 +30,7 @@ which command to run, how to read its `--json` output, and how to explain the re
 Run `kestrix version` first. It prints `0.1.0 (Kestrix by Ruthvik Bandari)` or similar. Inside a Kestrix
 source checkout, use `uv run kestrix ...` instead.
 
-If the command is not found, tell the user and offer to install it from PyPI. Install only after they agree:
+If the command is not found, tell the user and offer to install it. Install only after they agree:
 
 ```bash
 uv tool install kestrix
@@ -39,6 +39,8 @@ pipx install kestrix
 # photo metadata (EXIF) support:
 uv tool install "kestrix[exif]"
 ```
+
+If the package is not on PyPI yet, `uv tool install "git+https://github.com/Ruthvik-Bandari/kestrix"` installs it from the repository.
 
 Detection repair also needs the pinned Elasticsearch in Docker. Start it once, wait about 30 seconds,
 then confirm it is ready (exit 0 means ready, 3 means not reachable):
@@ -142,15 +144,19 @@ refused (exit 2).
 ## Website check
 
 Only for a site the user owns or is authorized to assess. If they have not said so, ask
-"Is this your site, or are you authorized to test it?" and wait for a yes. The check sends one GET (up to
-5 redirects) and one TLS handshake; it does not crawl or attack.
+"Is this your site, or are you authorized to test it?" and wait for a yes. By default the check covers the
+whole site: up to 50 read-only GETs to the page, the pages it links to, its sitemap and six common login addresses
+(`/login`, `/signin`, `/admin`, `/admin/login`, `/account`, `/wp-login.php`), plus one TLS handshake; `--page-only` sends
+one GET (up to 5 redirects) instead. It never submits forms, logs in, leaves the site or attacks.
 
 ```bash
 kestrix webcheck scan https://your-site.example --json
 kestrix webcheck scan https://your-site.example --json --site-type dynamic
+kestrix webcheck scan https://your-site.example --json --page-only
 ```
 
-Use `--site-type dynamic` when the user says the site has logins that the home page does not show.
+Use `--site-type dynamic` when the user says the site has logins the scan cannot find. In the result, `pages` lists what was
+checked and `limits_reached` says if the 50-page or 60-second limit stopped the scan; each finding's `pages` says where it was seen.
 `--allow-private` is only for a lab host the user controls on a private network.
 
 Read `grade` (A to F), `score`, `tls.status`, `tls.days_remaining` and `findings`. Each finding has a
