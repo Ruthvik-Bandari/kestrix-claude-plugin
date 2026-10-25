@@ -23,9 +23,9 @@ them in the same turn. The plugin also adds secure-review skills and four comman
 `/kestrix:review` and `/kestrix:status`.
 
 - **Offline.** The hooks open no network connections and send nothing off your machine. No account, no telemetry.
-- **Deterministic.** Findings come from fixed rules, not a model: 112 rules in all, 30 Python, 16 JS/TS, 12 web-file, 9 PHP, 3 SQL-file, 24 infrastructure, 11 secret, 2 dependency, 5 agent-config rules
-  (Python syntax tree and data flow, JavaScript and TypeScript, hard-coded secrets, dependency lockfiles, and Claude
-  Code and MCP configuration). The same file gives the same result on every run.
+- **Deterministic.** Findings come from fixed rules, not a model: 133 rules in all, 30 Python, 16 JS/TS, 12 web-file, 9 PHP, 3 SQL-file, 4 Go, 7 Java/Kotlin, 4 C#, 6 Ruby, 24 infrastructure, 11 secret, 2 dependency, 5 agent-config rules
+  (Python syntax tree and data flow, JavaScript and TypeScript, web files, PHP, SQL, Go, Java and Kotlin, C#, Ruby and
+  ERB, CI and infrastructure files, hard-coded secrets, dependency lockfiles, and Claude Code and MCP configuration). The same file gives the same result on every run.
 - **Apache-2.0,** including the rules, so you can read, audit and redistribute them.
 - **Works alongside Anthropic's `security-guidance` plugin** and `/security-review`, which use the model to review
   code. Kestrix is a rule-based layer next to them, not a replacement.
@@ -45,7 +45,8 @@ What is scanned, how deeply, and what is not:
 - **Per file, not per program.** Analysis is per file. Taint (a value from a request, a model or a file reaching
   a dangerous call) is tracked within one function. There is no whole-program or cross-file analysis: a value that
   passes through another function or module is not followed.
-- **What the rules know:** 112 rules, 30 Python, 16 JS/TS, 12 web-file, 9 PHP, 3 SQL-file, 24 infrastructure, 11 secret, 2 dependency, 5 agent-config rules. Python and JavaScript/TypeScript code rules;
+- **What the rules know:** 133 rules, 30 Python, 16 JS/TS, 12 web-file, 9 PHP, 3 SQL-file, 4 Go, 7 Java/Kotlin, 4 C#, 6 Ruby, 24 infrastructure, 11 secret, 2 dependency, 5 agent-config rules. Code rules for Python, JavaScript/TypeScript, PHP, Go,
+  Java and Kotlin, C# and Ruby, web-file, SQL-file, CI and infrastructure rules;
   secrets in any text file; Claude Code and MCP configuration; and dependency lockfiles, checked against a local
   copy of the OSV advisories only after you run `kestrix-scan db update`.
 - **No findings is not proof of security.** A rule that did not fire is not a guarantee, and the rules say nothing
