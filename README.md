@@ -23,7 +23,7 @@ them in the same turn. The plugin also adds secure-review skills and four comman
 `/kestrix:review` and `/kestrix:status`.
 
 - **Offline.** The hooks open no network connections and send nothing off your machine. No account, no telemetry.
-- **Deterministic.** Findings come from fixed rules, not a model: 146 rules in all, 30 Python, 16 JS/TS, 12 web-file, 9 PHP, 3 SQL-file, 4 Go, 7 Java/Kotlin, 4 C#, 6 Ruby, 7 C/C++, 3 Rust, 3 Swift, 24 infrastructure, 11 secret, 2 dependency, 5 agent-config rules
+- **Deterministic.** Findings come from fixed rules, not a model: 147 rules in all, 30 Python, 17 JS/TS, 12 web-file, 9 PHP, 3 SQL-file, 4 Go, 7 Java/Kotlin, 4 C#, 6 Ruby, 7 C/C++, 3 Rust, 3 Swift, 24 infrastructure, 11 secret, 2 dependency, 5 agent-config rules
   (Python syntax tree and data flow, JavaScript and TypeScript, web files, PHP, SQL, Go, Java and Kotlin, C#, Ruby and
   ERB, C and C++, Rust, Swift (lexically obvious patterns only), CI and infrastructure files, hard-coded secrets, dependency lockfiles, and Claude Code and MCP configuration). The same file gives the same result on every run.
 - **Apache-2.0,** including the rules, so you can read, audit and redistribute them.
@@ -45,7 +45,7 @@ What is scanned, how deeply, and what is not:
 - **Per file, not per program.** Analysis is per file. Taint (a value from a request, a model or a file reaching
   a dangerous call) is tracked within one function. There is no whole-program or cross-file analysis: a value that
   passes through another function or module is not followed.
-- **What the rules know:** 146 rules, 30 Python, 16 JS/TS, 12 web-file, 9 PHP, 3 SQL-file, 4 Go, 7 Java/Kotlin, 4 C#, 6 Ruby, 7 C/C++, 3 Rust, 3 Swift, 24 infrastructure, 11 secret, 2 dependency, 5 agent-config rules. Code rules for Python, JavaScript/TypeScript, PHP, Go,
+- **What the rules know:** 147 rules, 30 Python, 17 JS/TS, 12 web-file, 9 PHP, 3 SQL-file, 4 Go, 7 Java/Kotlin, 4 C#, 6 Ruby, 7 C/C++, 3 Rust, 3 Swift, 24 infrastructure, 11 secret, 2 dependency, 5 agent-config rules. Code rules for Python, JavaScript/TypeScript, PHP, Go,
   Java and Kotlin, C#, Ruby, C and C++, Rust and Swift, web-file, SQL-file, CI and infrastructure rules;
   secrets in any text file; Claude Code and MCP configuration; and dependency lockfiles, checked against a local
   copy of the OSV advisories only after you run `kestrix-scan db update`.
@@ -111,7 +111,7 @@ to Claude Code, which adds it to the conversation like any other tool result.
 | --- | --- | --- | --- |
 | `SessionStart` | session start, resume, clear, compact | whether `kestrix-scan` is on PATH; `.kestrix.json` in the project | One line of context to Claude (the hooks are active, whether the Stop gate is on), and once per session one line to you. Deletes this plugin's session records older than 14 days. |
 | `PreToolUse` on `Write\|Edit\|MultiEdit\|NotebookEdit` | before Claude changes a file | the file about to change (up to 1 MiB) | Nothing. It copies the file into the plugin's data directory, so the next hook can tell new findings from old ones. It prints nothing and never blocks a tool. |
-| `PreToolUse` on `Bash` (install guard) | before every Bash command | the command text; the local OSV index, if you built one | Only for `pip`, `uv`, `npm`, `pnpm` or `yarn` installs: a `deny` to Claude Code for a package reported as malicious, or a warning for a known-vulnerable pinned version. Silent without an index. It also notes the time the command started in the plugin's data directory, for the `PostToolUse` hook below. |
+| `PreToolUse` on `Bash` (install guard) | before every Bash command | the command text; the local OSV index, if you built one | Only for `pip`, `uv`, `npm`, `pnpm` or `yarn` installs: a `deny` to Claude Code for a package reported as malicious, or a warning for a known-vulnerable pinned version. Without an index it says once that the guard is inactive and `kestrix-scan db update` turns it on, then stays silent. It also notes the time the command started in the plugin's data directory, for the `PostToolUse` hook below. |
 | `PostToolUse` on `Write\|Edit\|MultiEdit\|NotebookEdit` | after Claude changes a file | the changed file and its snapshot | Up to 5 new medium-or-worse findings (rule id, CWE, line, message, fix; under 1,500 characters) as context to Claude. Nothing when the edit added no finding. When the scan could not run: the "not checked" notice (see Three scan states). |
 | `PostToolUse` and `PostToolUseFailure` on `Bash` | after every Bash command, including one that failed | `git status`, and the modification time of each file it lists; the changed source-like files (at most 20) and their `HEAD` versions | The same findings as above, for the files the command changed. See below. |
 | `Stop` (off by default) | when Claude tries to finish | the files changed this session and their first snapshots | When high or critical findings this session introduced remain: a `block` with the list, so Claude gets one more turn to fix them. At most 3 blocks per session. |
